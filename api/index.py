@@ -4,6 +4,8 @@ import numpy as np
 import traceback
 import joblib
 import os
+import subprocess
+from flask import Flask, jsonify, request
 import logging
 from datetime import datetime, timedelta
 from prometheus_client import Counter, Histogram
@@ -1221,6 +1223,34 @@ def get_group_a_detailed_analysis(start_year: int = 2017, end_year: Optional[int
             status_code=500,
             content={"error": f"Failed to get detailed Group A analysis: {str(e)}"}
         )
+
+ADMIN_TOKEN = os.getenv("ADMIN_TRAIN_TOKEN")
+
+@app.route("/train-models", methods=["POST"])
+def train_models():
+    token = request.headers.get("X-ADMIN-TOKEN")
+
+    if not ADMIN_TOKEN or token != ADMIN_TOKEN:
+        return jsonify({"error": "Unauthorized"}), 403
+
+    try:
+        result = subprocess.run(
+            ["python", "ml/train_patterns.py"],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        return jsonify({
+            "status": "success",
+            "output": result.stdout
+        })
+    except subprocess.CalledProcessError as e:
+        return jsonify({
+            "status": "failed",
+            "error": e.stderr
+        }), 500
+
+
 # For running the app
 if __name__ == "__main__":
     import uvicorn
