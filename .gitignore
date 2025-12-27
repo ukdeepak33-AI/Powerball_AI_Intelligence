@@ -3,3 +3,4 @@ __pycache__/
 .env
 ml/models/*
 !ml/models/.keep
+touch ml/models/.keep
