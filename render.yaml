@@ -1,0 +1,7 @@
+services:
+  - type: worker
+    name: powerball-ml-training
+    env: python
+    buildCommand: pip install -r ml/requirements.txt
+    startCommand: python ml/train_patterns.py
+    autoDeploy: false
